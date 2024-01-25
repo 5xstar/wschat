@@ -2,6 +2,7 @@ package com._5xstar.wschat._default;
 
 
 import com._5xstar.wschat.WSChatServer;
+import org.apache.commons.io.FileUtils;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -12,6 +13,7 @@ import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Properties;
 
@@ -58,19 +60,46 @@ public final class DefaultLoginServlet extends HttpServlet {
 	 * @return
 	 */
 	private static String getPassword(final HttpServletRequest request, final String user){
-		File f=null;
-		final URL url = DefaultLoginServlet.class.getResource("com/_5xstar/wschat/_default/wschat_default_users.properties");
-		if(url!=null)f = new File(url.getFile());
-		if(f==null || !f.exists()) {
-			final HttpSession session = request.getSession();
-			final ServletContext servletContext = session.getServletContext();
-			String path = servletContext.getRealPath("WEB-INF");
-			System.out.println("path=" + path);
-			f = new File(path, "com/_5xstar/wschat/_default/wschat_default_users.properties");
-			if(!f.exists()) {
-				path = servletContext.getRealPath("WEB-INF/classes");
-				System.out.println("path=" + path);
-				f = new File(path, "com/_5xstar/wschat/_default/wschat_default_users.properties");
+		final HttpSession session = request.getSession();
+		final ServletContext servletContext = session.getServletContext();
+		String path = servletContext.getRealPath("WEB-INF");
+		System.out.println("path=" + path);
+		File f=new File(path, Const.userPropsFile);  //项目运行根目录
+		boolean getFileOn = false;
+		if(f.exists() && f.isFile()){
+			getFileOn = true;
+		}else {
+			URL url = DefaultLoginServlet.class.getClassLoader().getResource(Const.userPropsFile);
+			if(url==null)url = DefaultLoginServlet.class.getResource(Const.userPropsFile);
+			if (url != null) {
+				String urlFile = url.getFile();
+				System.out.println("conf File:" + urlFile);  //测试
+				InputStream in = null;
+				try {
+					in = url.openStream();  //getClass().getClassLoader().getResourceAsStream(urlFile);
+					if (in != null) {
+						FileUtils.copyInputStreamToFile(in, f);
+						getFileOn = true;
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				} finally {
+					if (in != null) try {
+						in.close();
+					} catch (Exception e55) {
+					}
+				}
+			}
+		}
+		if (!getFileOn) {
+			path = servletContext.getRealPath("WEB-INF/classes");
+			System.out.println("path2=" + path);
+			File f2 = new File(path, Const.userPropsFile);
+			if(f2.exists() && f2.isFile()){
+				try{
+					FileUtils.copyFile(f2, f);
+					getFileOn=true;
+				}catch (Exception e){e.printStackTrace();}
 			}
 		}
 		System.out.println(f.getAbsolutePath());

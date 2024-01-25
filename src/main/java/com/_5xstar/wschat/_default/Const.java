@@ -7,6 +7,8 @@ package com._5xstar.wschat._default;
  */
 public class Const {
 
+    public final static String userPropsFile = "wschat_default_users.properties";
+
     /**
      *服务器名称
      */
