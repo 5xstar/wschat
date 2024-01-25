@@ -1,0 +1,9 @@
+/.gradle
+/.idea
+/build
+/gradle
+/war
+/*.war
+/copy.bat
+/vue/dist
+/vue/node_modules

@@ -1,0 +1,97 @@
+<?xml version="1.0"  encoding="UTF-8" ?>
+
+
+<project default="create-war" basedir=".">
+	
+	<!-- 设置参数 -->
+	<property name="jdk.dir"  	               value="../jdk" />
+	<property name="tomcat.dir"                value="../tomcat" />
+	<property name="appname"		value="wschat" />
+	<property name="war-temp.dir"	        value="war" />
+	<property name="etc.dir"		value="etc" />
+	<property name="lib.dir"		value="lib" />
+	<property name="vue.dir"		value="vue" />
+	<property name="vue_dist.dir"		value="${vue.dir}/dist" />
+	<property name="src.dir"        value="src/main/java" />
+	<property name="resources.dir"  value="src/main/resources" />
+
+	<!-- 定义编译时候的CLASSPATH -->
+	<path id="compile.classpath">
+		<fileset dir="${lib.dir}">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${tomcat.dir}/lib">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<!-- 定义运行时候的CLASSPATH -->
+	<path id="run.classpath">
+		<fileset dir="${tomcat.dir}/lib">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${war-temp.dir}/lib">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<!-- 编译前的准备工作 -->
+	<target name="prepare">
+		<delete dir="${war-temp.dir}" />
+		<delete file="${appname}.war" />
+		<mkdir dir="${war-temp.dir}" />
+		<mkdir dir="${war-temp.dir}/WEB-INF" />
+		<mkdir dir="${war-temp.dir}/WEB-INF/lib" />
+		<mkdir dir="${war-temp.dir}/WEB-INF/classes" />
+	</target>
+
+	<!-- 编译 -->
+	<target name="compile" depends="prepare">
+
+		<!--  执行vue创建   -->
+		<exec executable="vue.bat"  />
+
+		<!-- 拷贝Web文件 -->
+		<copy todir="${war-temp.dir}">
+			<fileset dir="${vue_dist.dir}">
+			</fileset>
+		</copy>
+
+		<!-- 拷贝系统(etc)配置文件 -->
+		<copy todir="${war-temp.dir}/WEB-INF">
+			<fileset dir="${etc.dir}" excludes="**/*.properties">
+			</fileset>
+		</copy>
+		<native2ascii src="${etc.dir}" dest="${war-temp.dir}/WEB-INF" includes="**/*.properties"  encoding="utf-8" />
+
+		<!-- 拷贝用户资源资源文件 -->
+		<copy todir="${war-temp.dir}/WEB-INF/classes">
+			<fileset dir="${resources.dir}" excludes="**/*.properties">
+			</fileset>
+		</copy>
+		<native2ascii src="${resources.dir}" dest="${war-temp.dir}/WEB-INF/classes"
+			includes="**/*.properties" encoding="utf-8" />
+
+		<!-- 拷贝库文件 -->
+		<copy todir="${war-temp.dir}/WEB-INF/lib">
+			<fileset dir="${lib.dir}">
+			</fileset>
+		</copy>
+
+		<!-- 编译JAVA源文件 -->
+		<javac  fork="true" executable="${jdk.dir}/bin/javac"   srcdir="${src.dir}" destdir="${war-temp.dir}/WEB-INF/classes" encoding="UTF-8" >
+			<classpath>
+				<path refid="compile.classpath" />
+			</classpath>
+		</javac>
+
+	</target>
+
+	<target depends="compile" name="create-war">
+		<war destfile="${appname}.war" webxml="wscweb.xml">
+			<fileset dir="${war-temp.dir}" />
+		</war>
+	</target>
+
+</project>
+

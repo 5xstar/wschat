@@ -1,0 +1,302 @@
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录</title>
+    <script>
+    const loginConfig = {
+        login_api: './vlogin',
+        login_success_redirect_to: './',
+    }
+    </script>
+</head>
+<body>
+    <style>
+        *{
+            font-family: system-ui;
+        }
+        div{
+            margin: 0;
+        }
+        body{
+            background-color: #7ac3fb;
+        }
+
+        .main {
+            background-color: rgba(255, 255, 255, 0.9);
+            /* backdrop-filter: blur(8px); */
+            /* -webkit-backdrop-filter: blur(8px); */
+            width: 340px;
+            /*height: auto!important;*/
+            flex: 1;
+            /*box-shadow: 0 5px 20px 0 #ffffff;*/
+            border-radius: 10px;
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            margin: auto;
+        }
+        .main2{
+            width: calc( 100% - 40px );
+            height: auto;
+            text-align: center;
+            margin: 0 20px 10px 20px;
+        }
+        .loginTitle{
+            font-size: 22px;
+            margin: 16px 0 14px 0;
+        }
+        .form {
+            font-size: 20px;
+            margin: 0;
+        }
+        input {
+            align-items: center;
+            width: 100%;
+            height: 40px;
+            border: 1.5px solid lightgray;
+            border-radius: 8px;
+            outline-color:#0069da;
+            margin:3px 0;
+            padding: 0px 6px;
+            font-size: 14px;
+        }
+        .divLoginButton{
+            margin: 10px 0 28px 0;
+            width: 100%;
+            height: 48px;
+        }
+        .loginStatus{
+            text-align: center;
+            font-size: 16px;
+            line-height: 24px;
+            margin: 6px 0;
+        }
+        .forgotPassword{
+            color:gray;
+            font-size: 14px;
+        }
+        .loginbutton{
+            width: 100%;
+            height: 50px;
+            color: white;
+            background-color: #1987fd;
+            border-style: none;
+            border-radius: 8px;
+            font-size: 18px;
+            margin: 0;
+            float: right;
+            outline: none;
+            cursor: pointer;
+            transition-duration: 0.14s;
+        }
+        .loginbutton:hover{
+            background-color: #0072eb;
+        }
+        .loginbutton:active{
+            background-color: #004ea2;
+        }
+        .loginbutton:disabled{
+            background-color: #a2cfff;
+            cursor: default;
+        }
+        .ending{
+            color: gray;
+            font-size: 14px;
+            margin-bottom: 14px;
+        }
+        .ending a{
+            color:gray;
+            line-height: 28px;
+        }
+        .button_lang {
+            text-align: center;
+            font-size: 24px;
+            width: 32px;
+            padding: 0;
+            cursor: pointer;
+            border: none;
+            background-color: #0000;
+            color: white;
+        }
+        .div_change_lang {
+            position: relative;
+            display: inline-block;
+            height: 32px;
+        }
+        .div_change_lang_content {
+            display: none;
+            /*width: 160px;*/
+            height: auto!important;
+            background-color: white;
+            border-radius: 6px;
+            padding: 10px;
+            margin: -136px 0 0 0;
+            line-height: 28px;
+        }
+        .div_change_lang_content_a {
+            /*padding: 16px 4px;*/
+            /*margin: 16px 0;*/
+            color: black;
+            /*text-decoration: none;*/
+        }
+        .div_change_lang_content_a:hover{
+            color: #646464;
+        }
+        .div_change_lang_content_a:active{
+            color: #a0a0a0;
+        }
+        .div_change_lang:hover .div_change_lang_content {
+            display: block;
+            position: relative;
+        }
+        footer {
+            margin-top: -18px;
+        }
+
+        @media (prefers-color-scheme: dark){
+            body{
+                background-color: #153a55;
+            }
+            p {
+                color: white;
+            }
+            .main {
+                background-color: rgba(16, 16, 16, 0.75);
+            }
+            input {
+                background-color: #2f2f2f;
+                color: white;
+                border-color: gray;
+            }
+            .loginbutton{
+                background-color: #0066d3;
+            }
+            .loginbutton:disabled{
+                background-color: #212a34;
+            }
+            .div_button_lang{
+                color: black;
+            }
+            .div_change_lang_content{
+                background-color: #333;
+            }
+            .div_change_lang_content_a{
+                color: white;
+            }
+            .div_change_lang_content_a:hover{
+                color: #d1d1d1;
+            }
+            .div_change_lang_content_a:active{
+                color: #a0a0a0;
+            }
+        }
+    </style>
+    <div id="divmain" class="main" style="display: none;">
+        <div id="divmain2" class="main2">
+            <p id="loginTitle" class="loginTitle">title</p>
+            <div id="divLoginInput">
+                <form id="form" class="form">
+                    <input type="text" id="username" name="username" placeholder="用户名"><br>
+                    <input type="password" id="password" name="password" autocomplete="current-password" placeholder="密码"><br>
+                    
+                </form>
+                <p class="loginStatus">
+                    <span id="loginStatus">准备就绪</span><br>
+                </p>
+                <div id="divLoginButton" class="divLoginButton">
+                    <button type="button" id="loginbutton" class="loginbutton" onclick="clicklogin()">登录</button>
+                </div>
+            </div>
+            <!-- <footer id="ending" class="ending">
+                <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">匿ICP备NaN号-NaN</a><br>
+            </footer> -->
+        </div>
+    </div>
+    <script>
+        loginTitle.innerText = document.getElementsByTagName('title')[0].innerText
+        divmain.style.display = ""
+        window.onresize = ()=>{
+            divmain.style.bottom = (window.innerHeight <= divmain.clientHeight) ? '' : 0
+        }
+        function update_height(){
+            divmain.style.bottom = ''
+            divmain.style.height = ''
+            divmain.style.height = divmain.clientHeight + 'px'
+            window.onresize()
+        }
+        update_height()
+
+        function changeLoginStats(value, color=undefined){
+            loginStatus.innerHTML = value
+            if( color !== undefined ){
+                loginStatus.style.color = color
+            }
+            update_height()
+        }
+
+        async function clicklogin(){
+            if( loginbutton.disabled ) return
+            if (username.value ==='') {
+                changeLoginStats('未填写用户名','red')
+                username.select()
+                return
+            }
+            if (password.value ==='') {
+                changeLoginStats('未填写密码','red')
+                password.select()
+                return
+            }
+            loginbutton.disabled = true
+            changeLoginStats('正在尝试登录','')
+            try{
+                const FDS = new URLSearchParams()
+                FDS.append('username', username.value)
+                FDS.append('password', password.value)
+                const response = await fetch(loginConfig.login_api, {
+                    method: "POST",
+                    body: FDS,
+                })
+                if( response.status == 200 ){
+                    changeLoginStats('登录成功', 'green');
+                    location = loginConfig.login_success_redirect_to;
+                }else if( response.status == 403 ){
+                    changeLoginStats('用户名或密码错误', 'red');
+                    loginbutton.disabled = false
+                }else{
+                    changeLoginStats('登录失败 '+response.status, 'red');
+                    loginbutton.disabled = false
+                }
+            }catch(e){
+                console.error(e);
+                loginbutton.disabled = false
+                changeLoginStats('登录失败 '+e, 'red');
+            }
+        }
+
+        function add_doc_Enter_listener ( doc_name, func ){
+            if( typeof func === 'function' ){
+                // 运行函数
+                var thisfunc = ( event )=>{
+                    if ( event.key === 'Enter' ) func()
+                }
+            }else if( typeof func === 'string' ){
+                // 选中对应名称的元素
+                var thisfunc = ( event )=>{
+                    if ( event.key === 'Enter' ) {
+                        let i = document.getElementById( func )
+                        i.focus()
+                        i.select()
+                    }
+                }
+            }else throw new TypeError("Don't input other type to func!")
+
+            document.getElementById( doc_name ).addEventListener( "keyup", thisfunc )
+        }
+
+        add_doc_Enter_listener( "username", "password" )
+        add_doc_Enter_listener( "password", clicklogin )
+    </script>
+</body>
+</html>
