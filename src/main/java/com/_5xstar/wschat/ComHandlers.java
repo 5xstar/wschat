@@ -63,7 +63,7 @@ public final class ComHandlers {
      * @param msg 上传的消息
      * @return  已处理，true
      */
-    public static boolean filter(String msg){
+    public static boolean filter(MsgUser user, String msg){
         //if(hasNotInit)init();
         final Command command = getCommand(msg);
         if(command==null){
@@ -83,7 +83,7 @@ public final class ComHandlers {
         PubConst.es.submit(new Runnable() {  //启动异步线程进行处理
             @Override
             public void run() {
-                handler.handle(command.data);
+                handler.handle(user, command.data);
             }
         });
         return true;

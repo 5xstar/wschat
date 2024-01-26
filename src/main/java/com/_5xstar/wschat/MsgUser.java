@@ -17,4 +17,9 @@ public class MsgUser {
      * 在roomName中的唯一标识
      */
     public String userName;
+
+    @Override
+    public String toString(){
+        return "serverName=" + serverName + " roomName="+roomName+" userName="+userName;
+    }
 }

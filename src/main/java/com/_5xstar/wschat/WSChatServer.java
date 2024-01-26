@@ -160,7 +160,7 @@ public class WSChatServer implements Closeable {
 	@OnMessage
 	public void incoming(String msg) {
 		System.out.println("incoming msg:" + msg);
-		if(ComHandlers.filter(msg))return;  //已处理
+		if(ComHandlers.filter(user, msg))return;  //已处理
 		// Never trust the client
 		final String filteredMessage = String.format("%s: %s",
 				user.userName, msg.replaceAll("<[^>]*>", ""));
