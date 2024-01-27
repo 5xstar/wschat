@@ -27,7 +27,13 @@ public class WSChatServer implements Closeable {
 	//private static final Set<TbChatServer> connections = new CopyOnWriteArraySet<>();
 	//聊天室
 	private static final HashMap<String, Map<String, Set<WSChatServer>>>  servers = new HashMap<>();
-	
+
+	/**
+	 * 检查服务器是否存在
+	 */
+	public static boolean checkServer(String serverName){
+		return servers.get(serverName)!=null;
+	}
 
 	//
 	private static final Map<String, MsgUser> wsids = new HashMap<>();
@@ -292,7 +298,7 @@ public class WSChatServer implements Closeable {
 		//生成登录id
 		try {
 			final String wsid = createWsid();
-			System.out.println("wsid="+wsid);
+			//System.out.println("wsid="+wsid);
 			final MsgUser user = new MsgUser();
 			user.serverName=serverName;
 			user.roomName=roomName;
@@ -307,7 +313,7 @@ public class WSChatServer implements Closeable {
 			//request.setAttribute("wsid", wsid);
 			//response.addCookie(new Cookie("username", user));
 			//request.setAttribute("username", user);
-			System.out.println("serverName="+serverName+"  roomName="+roomName+"  userName="+userName+" wsid="+wsid);  //测试
+			System.out.println("user="+user+" wsid="+wsid);  //测试
 					/*String wsid = request.getParameter("wsid");
 					String username = request.getParameter("username");
 					if(wsid==null || username == null){

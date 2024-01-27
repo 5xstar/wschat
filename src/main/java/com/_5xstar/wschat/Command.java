@@ -1,5 +1,6 @@
 package com._5xstar.wschat;
 
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.annotation.JSONField;
 
 /**
@@ -22,4 +23,9 @@ public class Command {
      */
     @JSONField
     public String data;
+
+    @Override
+    public String toString(){
+        return JSON.toJSONString(this);
+    }
 }

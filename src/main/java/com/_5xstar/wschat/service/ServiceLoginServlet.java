@@ -1,16 +1,17 @@
-package com._5xstar.wschat._default;
+package com._5xstar.wschat.service;
+
 
 import com._5xstar.wschat.LoginServlet;
-
 /** 
  * 登录，需要验证
  * 庞海文  2023-12-25
  */
-public final class DefaultLoginServlet extends LoginServlet {
+public final class ServiceLoginServlet extends LoginServlet {
 
-	public DefaultLoginServlet() {
+	public ServiceLoginServlet() {
 		super();
 	}
+
 	@Override
 	protected String getUserPropsFile() {
 		return Const.userPropsFile;
@@ -25,5 +26,6 @@ public final class DefaultLoginServlet extends LoginServlet {
 	protected String getRoomName() {
 		return Const.roomName;
 	}
+
 
 }

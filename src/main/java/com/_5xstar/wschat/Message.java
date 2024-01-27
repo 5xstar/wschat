@@ -24,12 +24,26 @@ public abstract class Message {
 
     private String jsonMsg=null;
     public String getJSONMsg(){
-        if(jsonMsg==null){
-            ArrayList<JSONMessage> lst = new ArrayList<>(1);
-            lst.add(new JSONMessage(message()));
-            jsonMsg=JSON.toJSONString(lst);
-        }
-        return jsonMsg;
+            if (jsonMsg == null) {
+                ArrayList<JSONMessage> lst = new ArrayList<>(1);
+                lst.add(new JSONMessage(message()));
+                jsonMsg = JSON.toJSONString(lst);
+            }
+            return jsonMsg;
+    }
+
+    /**
+     * 客服程序调用打包源用户进msg
+     * @param srcUser
+     * @return
+     */
+    public String getJSONMsg(MsgUser srcUser){
+            // System.out.println("CustomerService user=" + user);
+            //ArrayList<JSONUserMessage> lst = new ArrayList<>(1);
+            //lst.add(new JSONUserMessage(srcUser,message()));
+            //String json = JSON.toJSONString(lst);
+            //System.out.println("srcUser="+srcUser+"  json="+json);
+            return JSON.toJSONString(new JSONUserMessage(srcUser,message()));
     }
 
     /**
@@ -45,6 +59,14 @@ public abstract class Message {
         public String msg;
         public JSONMessage(String msg){
             this.msg = msg;
+        }
+    }
+    public static class JSONUserMessage extends JSONMessage{
+        @JSONField
+        public MsgUser user;
+        public JSONUserMessage(MsgUser user, String msg){
+            super(msg);
+            this.user=user;
         }
     }
 }

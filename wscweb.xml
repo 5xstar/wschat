@@ -50,5 +50,27 @@
     <url-pattern>/vlogout</url-pattern>
   </servlet-mapping>
 
+  <servlet>
+    <description></description>
+    <display-name>ServiceLoginServlet</display-name>
+    <servlet-name>ServiceLoginServlet</servlet-name>
+    <servlet-class>com._5xstar.wschat.service.ServiceLoginServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ServiceLoginServlet</servlet-name>
+    <url-pattern>/srv/vlogin</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <description></description>
+    <display-name>ServiceLogoutServlet</display-name>
+    <servlet-name>ServiceLogoutServlet</servlet-name>
+    <servlet-class>com._5xstar.wschat.service.ServiceLogoutServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ServiceLogoutServlet</servlet-name>
+    <url-pattern>/srv/vlogout</url-pattern>
+  </servlet-mapping>
+
 
 </web-app>

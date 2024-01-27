@@ -1,7 +1,8 @@
 package com._5xstar.wschat._default.handlers;
 
 import com._5xstar.wschat.MsgUser;
-import com._5xstar.wschat._default.ComHandlerAbstractImpl;
+import com._5xstar.wschat.ComHandlerAbstractImpl;
+import com._5xstar.wschat._default.Const;
 
 /**
  * 测试命令处理器
@@ -27,6 +28,10 @@ public class TestComHandler extends ComHandlerAbstractImpl {
     @Override
     public void handle(MsgUser user, String data) {
         System.out.println("user="+user+" data="+data);
+    }
+
+    public TestComHandler(){
+        super(Const.serverName);
     }
 
 }

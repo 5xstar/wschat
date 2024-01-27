@@ -9,5 +9,7 @@ import java.util.concurrent.Executors;
  */
 public class PubConst {
     //本应用用的执行池,在定时执行器中关闭
-    public final static ExecutorService es= Executors.newCachedThreadPool();
+    public final static ExecutorService es = Executors.newCachedThreadPool();
+    public final static String serviceName = "sva";
+
 }

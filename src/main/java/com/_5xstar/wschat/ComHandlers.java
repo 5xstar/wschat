@@ -1,5 +1,6 @@
 package com._5xstar.wschat;
 
+import com._5xstar.wschat.service.CustomerService;
 import com.alibaba.fastjson2.JSON;
 import org.reflections.Reflections;
 
@@ -73,7 +74,8 @@ public final class ComHandlers {
         Map<String, ComHandler> handlers = handlerses.get(command.serverName);
         if(handlers==null){
             System.out.println("handlers is empty!");
-            return false;
+            CustomerService.filter(user, command);  //检查是不是客服，客服服务无处理器。
+            return true;
         }
         ComHandler handler = handlers.get(command.com);
         if(handler==null){  //如果命令处理器没有加入处理器集，出现这种情况，应该返回true而非false
