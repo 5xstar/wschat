@@ -252,6 +252,20 @@ public class WSChatServer implements Closeable {
 			}
 		}
 	}
+	/**
+	 * 向用户发送消息
+	 * @param msgUser
+	 * @param msg
+	 */
+	public static void putMsg(final MsgUser msgUser, final String msg){
+		final Message message = new Message(msgUser) {
+			@Override
+			public String message() {
+				return msg;
+			}
+		};
+		putMsg(message);
+	}
 
 	/**
 	 * 把消息发个用户
