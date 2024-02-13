@@ -294,15 +294,21 @@ public class WSChatServer implements Closeable {
 									 final HttpServletResponse response,
 									 final String serverName,
 									 final String roomName,
-									 final String userName){
+									 final String userName) {
+		final MsgUser user = new MsgUser();
+		user.serverName=serverName;
+		user.roomName=roomName;
+		user.userName=userName;
+		return createWsId(  request,  response,  user);
+
+	}
+	public static boolean createWsId(final HttpServletRequest request,
+									 final HttpServletResponse response,
+									 final MsgUser user){
 		//生成登录id
 		try {
 			final String wsid = createWsid();
 			//System.out.println("wsid="+wsid);
-			final MsgUser user = new MsgUser();
-			user.serverName=serverName;
-			user.roomName=roomName;
-			user.userName=userName;
 			doWsid(true, wsid, user);
 			String setHeaderCookieStr = "wsid=" + wsid ;
 			if (request.isSecure()) {
