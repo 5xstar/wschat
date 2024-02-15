@@ -7,7 +7,7 @@ import com.alibaba.fastjson2.annotation.JSONField;
  * 消息用户
  * 庞海文 2024-1-23
  */
-public class MsgUser {
+public class MsgUser extends UserHashMap<String,String>{
     /**
      * 服务器唯一标识
      */
