@@ -156,13 +156,6 @@ public class WSChatServer implements Closeable {
 					return "putMsg测试";
 				}
 			});
-
-		broadcast(new Message(this.user) {   //broadcast测试
-			@Override
-			public String message() {
-				return "broadcast测试";
-			}
-		});
 	}
 
 	/**
