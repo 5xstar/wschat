@@ -101,7 +101,7 @@ public class WSChatServer implements Closeable {
 			PubConst.es.submit(new Runnable() {  //启动异步线程进行处理
 				@Override
 				public void run() {
-					try{Thread.sleep(2000);}catch (Exception e){}
+					//try{Thread.sleep(2000);}catch (Exception e){}
 					test();  //测试
 				}
 			});

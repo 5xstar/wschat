@@ -3,6 +3,8 @@ package com._5xstar.wschat;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.annotation.JSONField;
 
+import javax.annotation.Nonnull;
+
 /**
  * 消息用户
  * 庞海文 2024-1-23
@@ -23,6 +25,26 @@ public class MsgUser extends UserHashMap<String,String>{
      */
     @JSONField
     public String userName;
+
+    /**
+     * 完整构造函数
+     * @param serverName
+     * @param roomName
+     * @param userName
+     */
+    public MsgUser(@Nonnull String serverName, @Nonnull String roomName, @Nonnull String userName){
+        super();
+        this.serverName=serverName;
+        this.roomName=roomName;
+        this.userName=userName;
+    }
+
+    /**
+     * 默认构造函数，构造后需要输入三属性才能作为聊天室用户
+     */
+    public MsgUser(){
+        super();
+    }
 
     @Override
     public String toString(){
