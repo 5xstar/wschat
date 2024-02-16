@@ -2,6 +2,7 @@ package com._5xstar.wschat;
 
 import org.apache.tomcat.websocket.WsIOException;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.websocket.*;
@@ -27,6 +28,34 @@ public class WSChatServer implements Closeable {
 	//private static final Set<TbChatServer> connections = new CopyOnWriteArraySet<>();
 	//聊天室
 	private static final HashMap<String, Map<String, Set<WSChatServer>>>  servers = new HashMap<>();
+
+	/**
+	 * 每一个服务器的命令库
+	 */
+	private static final HashMap<String, Set<String>> comsList = new HashMap<>();
+
+	/**
+	 * 注册命令库
+	 * {"serverName":"default","com":"test","data":"incoming json test","desc":"该字段可选，说明命令的功能"}
+	 * @param serverName
+	 * @param coms
+	 */
+	public static void  registerComs(@Nonnull String serverName, @Nonnull Set<String> coms){
+		comsList.put(serverName, coms);
+	}
+	/**
+	 * 添加一个命令到命令库
+	 * @param serverName
+	 * @param com
+	 */
+	public static void  addCom(@Nonnull String serverName, @Nonnull String com){
+		Set<String> coms = comsList.get(serverName);
+		if(coms==null){
+			coms = new CopyOnWriteArraySet<>();
+			comsList.put(serverName, coms);
+		}
+		coms.add(com);
+	}
 
 	/**
 	 * 检查服务器是否存在
