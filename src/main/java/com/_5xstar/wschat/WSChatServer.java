@@ -1,5 +1,6 @@
 package com._5xstar.wschat;
 
+import com.alibaba.fastjson2.JSON;
 import org.apache.tomcat.websocket.WsIOException;
 
 import javax.annotation.Nonnull;
@@ -20,6 +21,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @ServerEndpoint(value = "/wscapi" )
 public class WSChatServer implements Closeable {
+
+	//命令库发送头
+	public final static String comsLibHead = "comsLib:";
 
 	// 记录当前有多少个用户加入到了聊天室，它是static全局变量。为了多线程安全使用原子变量AtomicInteger
 	private static final AtomicInteger connectionIds = new AtomicInteger(0);
@@ -132,6 +136,7 @@ public class WSChatServer implements Closeable {
 				public void run() {
 					//try{Thread.sleep(2000);}catch (Exception e){}
 					test();  //测试
+					sendComsLib();  //发送命令库
 				}
 			});
 
@@ -158,8 +163,25 @@ public class WSChatServer implements Closeable {
 				return "broadcast测试";
 			}
 		});
+	}
 
-
+	/**
+	 * 发送命令库
+	 */
+	private void sendComsLib(){
+		System.out.println("send coms lib");
+		Set<String> coms = comsList.get(this.user.serverName);
+		if(coms==null || coms.isEmpty())return;
+		try {
+			sendMsg(new Message(this.user) {
+				@Override
+				public String message() {
+					return comsLibHead+JSON.toJSONString(coms);
+				}
+			});
+		}catch (Exception e){
+			e.printStackTrace();
+		}
 	}
 
 	//浏览器关闭连接时，Tomcat会回调这个函数
