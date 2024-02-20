@@ -32,9 +32,6 @@ public class WSChatServer implements Closeable {
 	//private static final Set<TbChatServer> connections = new CopyOnWriteArraySet<>();
 	//聊天室
 	private static final HashMap<String, Map<String, Set<WSChatServer>>>  servers = new HashMap<>();
-	public static Set<String> getWsids(){
-		return servers.keySet();
-	}
 
 	/**
 	 * 每一个服务器的命令库
@@ -73,6 +70,9 @@ public class WSChatServer implements Closeable {
 
 	//
 	private static final Map<String, MsgUser> wsids = new HashMap<>();
+	public static Set<String> getWsids(){
+		return wsids.keySet();
+	}
 
 	/**
 	 * 存取wsid
@@ -127,6 +127,30 @@ public class WSChatServer implements Closeable {
 				}
 			}
 			room.add(this);
+			//初始化聊天室
+			final ArrayList<String> temp = new ArrayList<>();
+			for(WSChatServer s : room)temp.add(s.user.userName);
+			try {
+				sendMsg(new Message(user) {
+					@Override
+					public String message() {
+						return MsgSendHead.INIT_ROOM_HEAD + JSON.toJSONString(temp);
+					}
+				});
+			}catch (Exception e){
+				e.printStackTrace();
+			}
+			if(room.size()>1){
+				final ArrayList<String> temp2 = new ArrayList<>();
+				temp2.add(user.userName);
+				final String message1 = MsgSendHead.ENTER_ROOM_HEAD+JSON.toJSONString(temp2);
+				broadcast(new Message(user) {
+					@Override
+					public String message() {
+						return message1;
+					}
+				}, true);
+			}
 			final String message = String.format("*(%d) %s  %s", aid, user.userName, "进入。");
 			broadcast(new Message(user) {
 				@Override
@@ -187,16 +211,26 @@ public class WSChatServer implements Closeable {
 		if(rooms==null)return;  //服务器不存在
 		Set<WSChatServer> room = rooms.get(user.roomName);
 		if(room==null)return;  //聊天室不存在
+		if(!room.contains(this))return;  //如果移除，不再操作
 		room.remove(this);  //从聊天室中移除对象
 		if(room.isEmpty()) {
 			rooms.remove(user.roomName);  //如果聊天室已经没人，删除聊天室
 			if(rooms.isEmpty())servers.remove(user.serverName);  //如果已没有聊天室，移除服务器
 		}else {
-			final String message = String.format("*(%d) %s (%d) %s", aid, user.userName, "已离开。");
+			ArrayList<String> temp = new ArrayList<>();
+			temp.add(user.userName);
+			final String message1 = MsgSendHead.LEAVE_ROOM_HEAD+JSON.toJSONString(temp);
 			broadcast(new Message(user) {
 				@Override
 				public String message() {
-					return message;
+					return message1;
+				}
+			});
+			final String message2 = String.format("*(%d) %s (%d) %s", aid, user.userName, "已离开。");
+			broadcast(new Message(user) {
+				@Override
+				public String message() {
+					return message2;
 				}
 			});
 		}
@@ -234,6 +268,9 @@ public class WSChatServer implements Closeable {
 
 	// 向聊天室中的每个用户广播消息
 	public static void broadcast(Message msg) {
+		broadcast(  msg, false) ;
+	}
+	private static void broadcast(Message msg, boolean forOthers) {
 		System.out.println(msg);  //测试
 		Map<String, Set<WSChatServer>> rooms = servers.get(msg.user.serverName);
 		if(rooms==null){
@@ -246,13 +283,14 @@ public class WSChatServer implements Closeable {
 			return;
 		}
 		for (WSChatServer client : room) {
+			if(forOthers && client.user.userName.equals(msg.user.userName))continue;
 			//try {
-				synchronized (client) {
-					//client.session.getBasicRemote().sendText(msg);
-					client.session.getAsyncRemote().sendText(msg.getJSONMsg());
-				}
+			synchronized (client) {
+				//client.session.getBasicRemote().sendText(msg);
+				client.session.getAsyncRemote().sendText(msg.getJSONMsg());
+			}
 			//} catch (IOException e) {
-             //  e.printStackTrace();
+			//  e.printStackTrace();
 			//}
 		}
 	}
