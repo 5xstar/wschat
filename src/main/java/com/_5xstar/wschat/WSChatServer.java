@@ -32,6 +32,9 @@ public class WSChatServer implements Closeable {
 	//private static final Set<TbChatServer> connections = new CopyOnWriteArraySet<>();
 	//聊天室
 	private static final HashMap<String, Map<String, Set<WSChatServer>>>  servers = new HashMap<>();
+	public static Set<String> getWsids(){
+		return servers.keySet();
+	}
 
 	/**
 	 * 每一个服务器的命令库
@@ -256,7 +259,7 @@ public class WSChatServer implements Closeable {
 
 	//主动离开
 	public static void leave(final MsgUser user){
-		if(user==null)return;
+		if(user==null || user.serverName==null)return;
 		Map<String, Set<WSChatServer>> rooms = servers.get(user.serverName);
 		if(rooms==null){
 			System.out.println(String.format("%s服务器不存在！", user.serverName));
