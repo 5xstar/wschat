@@ -15,7 +15,7 @@ public class CustomerService {
      */
     private static void ask(MsgUser user, String data) {
         System.out.println("CustomerService user=" + user + " data=" + data);
-        PubConst.es.submit(new Runnable() {  //测试
+        WSChatServer.es.submit(new Runnable() {  //测试
             @Override
             public void run() {
                 try {
@@ -53,7 +53,7 @@ public class CustomerService {
      */
     private static void answer(MsgUser user, String data) {
         System.out.println("answer user=" + user + " data=" + data);
-        PubConst.es.submit(new Runnable() {  //测试
+        WSChatServer.es.submit(new Runnable() {  //测试
             @Override
             public void run() {
                 try {

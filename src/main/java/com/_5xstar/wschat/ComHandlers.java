@@ -82,7 +82,7 @@ public final class ComHandlers {
             System.out.println(String.format("命令处理器：%s不存在！数据：%s", command.com,command.data));
             return true;
         }
-        PubConst.es.submit(new Runnable() {  //启动异步线程进行处理
+        WSChatServer.es.submit(new Runnable() {  //启动异步线程进行处理
             @Override
             public void run() {
                 handler.handle(user, command.data);
