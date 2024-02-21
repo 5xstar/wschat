@@ -4,6 +4,7 @@ import com._5xstar.wschat.service.CustomerService;
 import com.alibaba.fastjson2.JSON;
 import org.reflections.Reflections;
 
+import javax.annotation.Nonnull;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -64,7 +65,7 @@ public final class ComHandlers {
      * @param msg 上传的消息
      * @return  已处理，true
      */
-    public static boolean filter(MsgUser user, String msg){
+    public static boolean filter(@Nonnull WSChatUser user, @Nonnull String msg){
         //if(hasNotInit)init();
         final Command command = getCommand(msg);
         if(command==null){

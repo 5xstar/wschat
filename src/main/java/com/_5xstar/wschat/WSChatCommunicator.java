@@ -47,9 +47,9 @@ public interface WSChatCommunicator {
     /**
      * 发送命令库
      */
-    default void sendComsLib(MsgUser user){
+    default void sendComsLib(@Nonnull final WSChatUser user){
         System.out.println("send coms lib");
-        Set<String> coms = WSChatServer.getComsList().get(user.serverName);
+        Set<String> coms = WSChatServer.getComsList().get(user.getServerName());
         if(coms==null || coms.isEmpty())return;
         try {
             WSChatServer.sendMsg(new Message(user) {
@@ -71,23 +71,23 @@ public interface WSChatCommunicator {
     default void enter(WSChatServer client, Session session)throws WsIOException {
         System.out.println("ws login session="+session);  //test
         final List<String> ids = session.getRequestParameterMap().get("wsid");
-        MsgUser user;
+        WSChatUser user;
         if(ids!=null && !ids.isEmpty()
                 && (user=WSChatServer.doWsid(false, ids.get(0), null))!=null ){
             client.setUser(user);
             client.setSession(session);
-            Map<String, Set<WSChatServer>> rooms = WSChatServer.getServers().get(user.serverName);
+            Map<String, Set<WSChatServer>> rooms = WSChatServer.getServers().get(user.getServerName());
             if(rooms==null){
                 rooms = new HashMap<>();
-                WSChatServer.getServers().put(user.serverName, rooms);
+                WSChatServer.getServers().put(user.getServerName(), rooms);
             }
-            Set<WSChatServer> room = rooms.get(user.roomName);
+            Set<WSChatServer> room = rooms.get(user.getRoomName());
             if(room==null){  //创建聊天室
                 room = new CopyOnWriteArraySet<>();
-                rooms.put(user.roomName, room);
+                rooms.put(user.getRoomName(), room);
             }else{
                 for(WSChatServer old : room){  //移除旧对象
-                    if(old.getUser().userName.equals(user.userName)){
+                    if(old.getUser().getUserName().equals(user.getUserName())){
                         old.leave();
                         break;
                     }
@@ -96,20 +96,16 @@ public interface WSChatCommunicator {
             room.add(client);
             //初始化聊天室
             final ArrayList<String> temp = new ArrayList<>();
-            for(WSChatServer s : room)temp.add(s.getUser().userName);
-            try {
-                sendMsg(new Message(user) {
+            for(WSChatServer s : room)temp.add(s.getUser().getUserName());
+            sendMsg(new Message(user) {
                     @Override
                     public String message() {
                         return INIT_ROOM_HEAD() + JSON.toJSONString(temp);
                     }
-                });
-            }catch (Exception e){
-                e.printStackTrace();
-            }
+            });
             if(room.size()>1){
                 final ArrayList<String> temp2 = new ArrayList<>();
-                temp2.add(user.userName);
+                temp2.add(user.getUserName());
                 final String message1 = ENTER_ROOM_HEAD()+JSON.toJSONString(temp2);
                 broadcast(new Message(user) {
                     @Override
@@ -118,7 +114,7 @@ public interface WSChatCommunicator {
                     }
                 }, true);
             }
-            final String message = String.format("%s进入。", user.userName);
+            final String message = String.format("%s进入。", user.getUserName());
             broadcast(new Message(user) {
                 @Override
                 public String message() {
@@ -144,19 +140,19 @@ public interface WSChatCommunicator {
      * @param client
      */
     default void leave(@Nonnull WSChatServer client) {
-        final MsgUser user = client.getUser();
-        Map<String, Set<WSChatServer>> rooms = WSChatServer.getServers().get(user.serverName);
+        final WSChatUser user = client.getUser();
+        Map<String, Set<WSChatServer>> rooms = WSChatServer.getServers().get(user.getServerName());
         if(rooms==null)return;  //服务器不存在
-        Set<WSChatServer> room = rooms.get(user.roomName);
+        Set<WSChatServer> room = rooms.get(user.getRoomName());
         if(room==null)return;  //聊天室不存在
         if(!room.contains(client))return;  //如果移除，不再操作
         room.remove(client);  //从聊天室中移除对象
         if(room.isEmpty()) {
-            rooms.remove(user.roomName);  //如果聊天室已经没人，删除聊天室
-            if(rooms.isEmpty())WSChatServer.getServers().remove(user.serverName);  //如果已没有聊天室，移除服务器
+            rooms.remove(user.getRoomName());  //如果聊天室已经没人，删除聊天室
+            if(rooms.isEmpty())WSChatServer.getServers().remove(user.getServerName());  //如果已没有聊天室，移除服务器
         }else {
             ArrayList<String> temp = new ArrayList<>();
-            temp.add(user.userName);
+            temp.add(user.getUserName());
             final String message1 = LEAVE_ROOM_HEAD()+JSON.toJSONString(temp);
             broadcast(new Message(user) {
                 @Override
@@ -164,7 +160,7 @@ public interface WSChatCommunicator {
                     return message1;
                 }
             });
-            final String message2 = String.format("%s已离开。", user.userName);
+            final String message2 = String.format("%s已离开。", user.getUserName());
             broadcast(new Message(user) {
                 @Override
                 public String message() {
@@ -181,7 +177,7 @@ public interface WSChatCommunicator {
      */
     default void msgIncoming(@Nonnull WSChatServer client, @Nonnull String msg) {
         System.out.println("incoming msg:" + msg);
-        final MsgUser user = client.getUser();
+        final WSChatUser user = client.getUser();
         if(ComHandlers.filter(user, msg))return;  //是命令，已处理
         //处理定向发送
         final ArrayList<String> targets = new ArrayList<>();
@@ -189,7 +185,7 @@ public interface WSChatCommunicator {
         if(msg==null)return;
         // Never trust the client
         final String filteredMessage = String.format("%s: %s",
-                user.userName, msg.replaceAll("<[^>]*>", "")).replaceAll(TARGET_STRING(), "@");
+                user.getUserName(), msg.replaceAll("<[^>]*>", "")).replaceAll(TARGET_STRING(), "@");
         final Message message = new Message(user) {
             @Override
             public String message() {
@@ -210,21 +206,21 @@ public interface WSChatCommunicator {
      * @param targets
      * @return
      */
-    default String direction(@Nonnull final MsgUser user, @Nonnull String msg, @Nonnull final ArrayList<String> targets){
-        Map<String, Set<WSChatServer>> rooms = WSChatServer.getServers().get(user.serverName);
+    default String direction(@Nonnull final WSChatUser user, @Nonnull String msg, @Nonnull final ArrayList<String> targets){
+        Map<String, Set<WSChatServer>> rooms = WSChatServer.getServers().get(user.getServerName());
         if(rooms==null){
-            System.out.println(String.format("%s服务器不存在！", user.serverName));
+            System.out.println(String.format("%s服务器不存在！", user.getServerName()));
             return null;
         }
-        Set<WSChatServer> room = rooms.get(user.roomName);
+        Set<WSChatServer> room = rooms.get(user.getRoomName());
         if(room==null){
-            System.out.println(String.format("%s聊天室不存在！", user.roomName));
+            System.out.println(String.format("%s聊天室不存在！", user.getRoomName()));
             return null;
         }
         String userName;
         String temp;
         for (WSChatServer client : room) {
-            userName = client.getUser().userName;
+            userName = client.getUser().getUserName();
             temp = TARGET_HEAD() + userName;
             if(msg.contains(temp)) {
                 msg=msg.replaceAll(temp, "");
@@ -249,18 +245,18 @@ public interface WSChatCommunicator {
     default void broadcast(@Nonnull Message msg, @Nonnull final List<String> targets) {
         if(targets.isEmpty())return;
         System.out.println(msg);  //测试
-        Map<String, Set<WSChatServer>> rooms = WSChatServer.getServers().get(msg.user.serverName);
+        Map<String, Set<WSChatServer>> rooms = WSChatServer.getServers().get(msg.user.getServerName());
         if(rooms==null){
-            System.out.println(String.format("%s服务器不存在！", msg.user.serverName));
+            System.out.println(String.format("%s服务器不存在！", msg.user.getServerName()));
             return;
         }
-        Set<WSChatServer> room = rooms.get(msg.user.roomName);
+        Set<WSChatServer> room = rooms.get(msg.user.getRoomName());
         if(room==null){
-            System.out.println(String.format("%s聊天室不存在！", msg.user.roomName));
+            System.out.println(String.format("%s聊天室不存在！", msg.user.getRoomName()));
             return;
         }
         for (WSChatServer client : room) {
-            if(targets.contains(client.getUser().userName)) {
+            if(targets.contains(client.getUser().getUserName())) {
                 //try {
                 synchronized (client) {
                     //client.session.getBasicRemote().sendText(msg);
@@ -279,18 +275,18 @@ public interface WSChatCommunicator {
      */
     default void broadcast(@Nonnull Message msg, boolean forOthers) {
         System.out.println(msg);  //测试
-        Map<String, Set<WSChatServer>> rooms = WSChatServer.getServers().get(msg.user.serverName);
+        Map<String, Set<WSChatServer>> rooms = WSChatServer.getServers().get(msg.user.getServerName());
         if(rooms==null){
-            System.out.println(String.format("%s服务器不存在！", msg.user.serverName));
+            System.out.println(String.format("%s服务器不存在！", msg.user.getServerName()));
             return;
         }
-        Set<WSChatServer> room = rooms.get(msg.user.roomName);
+        Set<WSChatServer> room = rooms.get(msg.user.getRoomName());
         if(room==null){
-            System.out.println(String.format("%s聊天室不存在！", msg.user.roomName));
+            System.out.println(String.format("%s聊天室不存在！", msg.user.getRoomName()));
             return;
         }
         for (WSChatServer client : room) {
-            if(forOthers && client.getUser().userName.equals(msg.user.userName))continue;
+            if(forOthers && client.getUser().getUserName().equals(msg.user.getUserName()))continue;
             //try {
             synchronized (client) {
                 //client.session.getBasicRemote().sendText(msg);
@@ -306,20 +302,20 @@ public interface WSChatCommunicator {
      * 主动离开
      * @param user
      */
-    default void leave(final MsgUser user){
-        if(user==null || user.serverName==null)return;
-        Map<String, Set<WSChatServer>> rooms = WSChatServer.getServers().get(user.serverName);
+    default void leave(final WSChatUser user){
+        if(user==null || user.getServerName()==null)return;
+        Map<String, Set<WSChatServer>> rooms = WSChatServer.getServers().get(user.getServerName());
         if(rooms==null){
-            System.out.println(String.format("%s服务器不存在！", user.serverName));
+            System.out.println(String.format("%s服务器不存在！", user.getServerName()));
             return;
         }
-        Set<WSChatServer> room = rooms.get(user.roomName);
+        Set<WSChatServer> room = rooms.get(user.getRoomName());
         if(room==null){
-            System.out.println(String.format("%s聊天室不存在！", user.roomName));
+            System.out.println(String.format("%s聊天室不存在！", user.getRoomName()));
             return;
         }
         for (WSChatServer client : room) {
-            if(user.userName.equals(client.getUser().userName)) {
+            if(user.getUserName().equals(client.getUser().getUserName())) {
                 synchronized (client) {
                     client.leave();
                     break;
@@ -336,12 +332,30 @@ public interface WSChatCommunicator {
         if(msg.user!=null){
             broadcast( msg);
         }else{
-            msg.user = new MsgUser();
             for(String serverName : WSChatServer.getServers().keySet()) {
-                msg.user.serverName=serverName;
                 Map<String, Set<WSChatServer>> rooms = WSChatServer.getServers().get(serverName);
                 for (String roomName : rooms.keySet()) {
-                    msg.user.roomName = roomName;
+                    msg.user=new WSChatUser() {
+                        @Override
+                        public String getServerName() {
+                            return serverName;
+                        }
+
+                        @Override
+                        public String getRoomName() {
+                            return roomName;
+                        }
+
+                        @Override
+                        public String getUserName() {
+                            return null;
+                        }
+
+                        @Override
+                        public Runnable kickRun() {
+                            return null;
+                        }
+                    };
                     broadcast(msg);
                 }
             }
@@ -353,7 +367,7 @@ public interface WSChatCommunicator {
      * @param msgUser
      * @param msg
      */
-    default void putMsg(@Nonnull final MsgUser msgUser, @Nonnull final String msg){
+    default void putMsg(@Nonnull final WSChatUser msgUser, @Nonnull final String msg){
         final Message message = new Message(msgUser) {
             @Override
             public String message() {
@@ -369,18 +383,18 @@ public interface WSChatCommunicator {
      */
     default void sendMsg(@Nonnull final Message msg) {
         if(msg.user==null)return;
-        Map<String, Set<WSChatServer>> rooms = WSChatServer.getServers().get(msg.user.serverName);
+        Map<String, Set<WSChatServer>> rooms = WSChatServer.getServers().get(msg.user.getServerName());
         if(rooms==null){
-            System.out.println(String.format("%s服务器不存在！", msg.user.serverName));
+            System.out.println(String.format("%s服务器不存在！", msg.user.getServerName()));
             return;
         }
-        Set<WSChatServer> room = rooms.get(msg.user.roomName);
+        Set<WSChatServer> room = rooms.get(msg.user.getRoomName());
         if(room==null){
-            System.out.println(String.format("%s聊天室不存在！", msg.user.roomName));
+            System.out.println(String.format("%s聊天室不存在！", msg.user.getRoomName()));
             return;
         }
         for (WSChatServer client : room) {
-            if(msg.user.userName.equals(client.getUser().userName)) {
+            if(msg.user.getUserName().equals(client.getUser().getUserName())) {
                 synchronized (client) {
                     //client.session.getBasicRemote().sendText(msg);
                     client.getSession().getAsyncRemote().sendText(msg.getJSONMsg());
@@ -395,18 +409,25 @@ public interface WSChatCommunicator {
      * @param user
      * @return
      */
-    default boolean checkIn(@Nonnull final MsgUser user){
-        Map<String, Set<WSChatServer>> rooms = WSChatServer.getServers().get(user.serverName);
+    default boolean checkOld(@Nonnull final WSChatUser user){
+        Map<String, Set<WSChatServer>> rooms = WSChatServer.getServers().get(user.getServerName());
         if(rooms==null){
             return false;
         }
-        Set<WSChatServer> room = rooms.get(user.roomName);
+        Set<WSChatServer> room = rooms.get(user.getRoomName());
         if(room==null){
             return false;
         }
         for (WSChatServer client : room) {
-            if(user.userName.equals(client.getUser().userName)) {
-                return true;
+            if(user.getUserName().equals(client.getUser().getUserName())) {
+                if(client.getUser().canKick()){
+                    final Runnable run = client.getUser().kickRun();
+                    client.leave();
+                    if(run!=null)WSChatServer.es.submit(run);
+                    return true;
+                }else {
+                    return false;
+                }
             }
         }
         return false;

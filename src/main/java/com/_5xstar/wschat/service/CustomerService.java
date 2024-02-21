@@ -13,16 +13,34 @@ public class CustomerService {
      * @param user  客户
      * @param data  客户数据
      */
-    private static void ask(MsgUser user, String data) {
+    private static void ask(WSChatUser user, String data) {
         System.out.println("CustomerService user=" + user + " data=" + data);
         WSChatServer.es.submit(new Runnable() {  //测试
             @Override
             public void run() {
                 try {
-                    MsgUser cs = new MsgUser();  //生成客服的虚拟客户
-                    cs.serverName=Const.serverName;
-                    cs.roomName=Const.roomName;
-                    cs.userName=user.userName;
+                    //生成客服的虚拟客户
+                    WSChatUser cs = new WSChatUser(){
+                        @Override
+                        public String getServerName() {
+                            return Const.serverName;
+                        }
+
+                        @Override
+                        public String getRoomName() {
+                            return Const.roomName;
+                        }
+
+                        @Override
+                        public String getUserName() {
+                            return user.getUserName();
+                        }
+
+                        @Override
+                        public Runnable kickRun() {
+                            return null;
+                        }
+                    };
                     final Message temp = new Message(user) {
                         @Override
                         public String message() {
@@ -31,7 +49,7 @@ public class CustomerService {
                     };
                     WSChatServer.sendMsg(temp);  //消息返回客户
                     //System.out.println("CustomerService user=" + user);
-                    final MsgUser _user = user;
+                    final WSChatUser _user = user;
                     WSChatServer.broadcast(new Message(cs) {  //发给客服组所以成员
                         @Override
                         public String message() {
@@ -51,7 +69,7 @@ public class CustomerService {
      * @param user  客服
      * @param data   回答数据，含user的Message对象
      */
-    private static void answer(MsgUser user, String data) {
+    private static void answer(WSChatUser user, String data) {
         System.out.println("answer user=" + user + " data=" + data);
         WSChatServer.es.submit(new Runnable() {  //测试
             @Override
@@ -78,7 +96,7 @@ public class CustomerService {
         });
     }
 
-    public static void filter(MsgUser user, Command command){
+    public static void filter(WSChatUser user, Command command){
         if(command.serverName.equals(Const.serviceName)){
             if(WSChatServer.checkServer(Const.serverName)) {
                 if(command.com!=null) {

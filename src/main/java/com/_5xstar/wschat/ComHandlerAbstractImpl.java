@@ -1,6 +1,5 @@
 package com._5xstar.wschat;
 
-import com._5xstar.wschat.ComHandler;
 import com._5xstar.wschat._default.Const;
 
 public abstract class ComHandlerAbstractImpl implements ComHandler {

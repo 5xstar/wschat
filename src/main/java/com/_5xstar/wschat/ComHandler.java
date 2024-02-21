@@ -19,7 +19,7 @@ public interface ComHandler {
      * 处理客户端上传的字符串
      * @param data
      */
-    void handle(MsgUser user, String data);
+    void handle(WSChatUser user, String data);
 
 
 }

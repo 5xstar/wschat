@@ -93,7 +93,7 @@ public class WSChatServer implements Closeable {
 	}
 
 	//
-	private static final Map<String, MsgUser> wsids = new HashMap<>();
+	private static final Map<String, WSChatUser> wsids = new HashMap<>();
 	public static Set<String> getWsids(){
 		return wsids.keySet();
 	}
@@ -105,7 +105,7 @@ public class WSChatServer implements Closeable {
 	 * @param user
 	 * @return
 	 */
-	public static synchronized MsgUser doWsid(final boolean isPut, final String wsid, @Nullable final MsgUser user){
+	public static synchronized WSChatUser doWsid(final boolean isPut, final String wsid, @Nullable final WSChatUser user){
 		if(isPut) {
 			wsids.put(wsid, user);
 			return null;
@@ -115,11 +115,11 @@ public class WSChatServer implements Closeable {
 	}
 	
 	//private final int aid;  //测试
-	private MsgUser user;
-	public void setUser(@Nonnull MsgUser user){
+	private WSChatUser user;
+	public void setUser(@Nonnull WSChatUser user){
 		this.user=user;
 	}
-	public MsgUser getUser(){
+	public WSChatUser getUser(){
 		return this.user;
 	}
 	private Session session;
@@ -174,7 +174,7 @@ public class WSChatServer implements Closeable {
 	}
 
 	//主动离开
-	public static void leave(final MsgUser user){
+	public static void leave(final WSChatUser user){
 		communicator.leave(user);
 	}
 
@@ -191,7 +191,7 @@ public class WSChatServer implements Closeable {
 	 * @param msgUser
 	 * @param msg
 	 */
-	public static void putMsg(@Nonnull final MsgUser msgUser, @Nonnull final String msg){
+	public static void putMsg(@Nonnull final WSChatUser msgUser, @Nonnull final String msg){
 		communicator.putMsg(msgUser, msg);
 	}
 
@@ -211,24 +211,49 @@ public class WSChatServer implements Closeable {
 	 * @param userName
 	 * @return
 	 */
-	public static boolean createWsId(final HttpServletRequest request,
-									 final HttpServletResponse response,
-									 final String serverName,
-									 final String roomName,
-									 final String userName) {
-		final MsgUser user = new MsgUser();
-		user.serverName=serverName;
-		user.roomName=roomName;
-		user.userName=userName;
+	public static boolean createWsId(@Nonnull final HttpServletRequest request,
+									 @Nonnull final HttpServletResponse response,
+									 @Nonnull final String serverName,
+									 @Nonnull final String roomName,
+									 @Nonnull final String userName) {
+		return createWsId(  request,  response,  serverName, roomName, userName, null);
+	}
+	public static boolean createWsId(@Nonnull final HttpServletRequest request,
+									 @Nonnull final HttpServletResponse response,
+									 @Nonnull final String serverName,
+									 @Nonnull final String roomName,
+									 @Nonnull final String userName,
+									 @Nullable final Runnable kickRun) {
+		final WSChatUser user = new WSChatUser(){
+			@Override
+			public String getServerName() {
+				return serverName;
+			}
+
+			@Override
+			public String getRoomName() {
+				return roomName;
+			}
+
+			@Override
+			public String getUserName() {
+				return userName;
+			}
+
+			@Override
+			public Runnable kickRun() {
+				return kickRun;
+			}
+		};
 		return createWsId(  request,  response,  user);
 
 	}
-	public static boolean createWsId(final HttpServletRequest request,
-									 final HttpServletResponse response,
-									 final MsgUser user){
+	public static boolean createWsId(@Nonnull final HttpServletRequest request,
+									 @Nonnull final HttpServletResponse response,
+									 @Nonnull final WSChatUser user){
 		//生成登录id
 		try {
-			if(communicator.checkIn(user))return false;  //如果用户已在其中，不再创建id
+			if(communicator.checkOld(user))return false;  //如果用户已在其中，不再创建id
 			final String wsid = createWsid();
 			doWsid(true, wsid, user);
 			String setHeaderCookieStr = "wsid=" + wsid ;
