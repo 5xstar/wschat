@@ -390,6 +390,28 @@ public interface WSChatCommunicator {
         }
     }
 
+    /**
+     * 检查用户是否已在其中
+     * @param user
+     * @return
+     */
+    default boolean checkIn(@Nonnull final MsgUser user){
+        Map<String, Set<WSChatServer>> rooms = WSChatServer.getServers().get(user.serverName);
+        if(rooms==null){
+            return false;
+        }
+        Set<WSChatServer> room = rooms.get(user.roomName);
+        if(room==null){
+            return false;
+        }
+        for (WSChatServer client : room) {
+            if(user.userName.equals(client.getUser().userName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /*default void test(){
 		System.out.println("incoming test");
 		incoming("incoming test");  //imcomming

@@ -228,6 +228,7 @@ public class WSChatServer implements Closeable {
 									 final MsgUser user){
 		//生成登录id
 		try {
+			if(communicator.checkIn(user))return false;  //如果用户已在其中，不再创建id
 			final String wsid = createWsid();
 			doWsid(true, wsid, user);
 			String setHeaderCookieStr = "wsid=" + wsid ;
