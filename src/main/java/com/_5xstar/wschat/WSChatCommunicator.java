@@ -18,7 +18,9 @@ public interface WSChatCommunicator {
     /**
      * 初始化聊天室，进入聊天室时使用
      */
-    default String INIT_ROOM_HEAD() {return "INIT_ROOM:";}
+    default String INIT_ROOM_HEAD() {
+        return "INIT_ROOM:";
+    }
     /**
      * 离开聊天室，通知聊天室其他人
      */
@@ -42,13 +44,23 @@ public interface WSChatCommunicator {
      * 消息中的定向符
      * @return
      */
-    default String TARGET_STRING(){return "#&40";}
+    default String TARGET_STRING(){return "&#64;";}
 
     /**
      * 定向符
      * @return
      */
     default String TARGET_HEAD(){return "@";}
+
+    /**
+     * 消息开头的{brace
+     * @return
+     */
+    default String BRACE_LEFT(){return "&#123;";}
+    default int BRACE_LEFT_LEN(){return "&#123;".length();}
+
+    default String BRACE_LEFT_STRING(){return "{";}
+
 
     /**
      * 发送命令库
@@ -198,7 +210,12 @@ public interface WSChatCommunicator {
     default void msgIncoming(@Nonnull WSChatServer client, @Nonnull String msg) {
         System.out.println("incoming msg:" + msg);
         final WSChatUser user = client.getUser();
-        if(ComHandlers.filter(user, msg))return;  //是命令，已处理
+        if(msg.startsWith(BRACE_LEFT_STRING())){
+            ComHandlers.doCom(user, msg);
+            return;  //是命令，已处理
+        }else if(msg.startsWith(BRACE_LEFT())){
+            msg=BRACE_LEFT_STRING()+msg.substring(BRACE_LEFT_LEN());
+        }
         //处理定向发送
         final ArrayList<String> targets = new ArrayList<>();
         msg = direction(user, msg, targets);

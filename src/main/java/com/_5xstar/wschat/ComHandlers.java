@@ -65,23 +65,23 @@ public final class ComHandlers {
      * @param msg 上传的消息
      * @return  已处理，true
      */
-    public static boolean filter(@Nonnull WSChatUser user, @Nonnull String msg){
+    public static void doCom(@Nonnull WSChatUser user, @Nonnull String msg){
         //if(hasNotInit)init();
         final Command command = getCommand(msg);
         if(command==null){
             System.out.println("command is null!");
-            return false;
+            return;
         }
         Map<String, ComHandler> handlers = handlerses.get(command.serverName);
         if(handlers==null){
             System.out.println("handlers is empty!");
             CustomerService.filter(user, command);  //检查是不是客服，客服服务无处理器。
-            return true;
+            return;
         }
         ComHandler handler = handlers.get(command.com);
         if(handler==null){  //如果命令处理器没有加入处理器集，出现这种情况，应该返回true而非false
             System.out.println(String.format("命令处理器：%s不存在！数据：%s", command.com,command.data));
-            return true;
+            return;
         }
         WSChatServer.es.submit(new Runnable() {  //启动异步线程进行处理
             @Override
@@ -89,7 +89,6 @@ public final class ComHandlers {
                 handler.handle(user, command.data);
             }
         });
-        return true;
     }
 
     /**
