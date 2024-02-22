@@ -6,6 +6,7 @@ import org.apache.tomcat.websocket.WsIOException;
 import javax.annotation.Nonnull;
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -31,6 +32,11 @@ public interface WSChatCommunicator {
      * 命令库发送头
      */
     default String COMMAND_LIB_HEAD(){return "COMMAND_LIB:";}
+
+    /**
+     * 关闭session前等待时间
+     */
+    default long WAIT_TIMEMILLIS_BEFORE_CLOSE(){return 500L;}
 
     /**
      * 消息中的定向符
@@ -146,6 +152,12 @@ public interface WSChatCommunicator {
         Set<WSChatServer> room = rooms.get(user.getRoomName());
         if(room==null)return;  //聊天室不存在
         if(!room.contains(client))return;  //如果移除，不再操作
+        sendMsg(new Message(user) {
+            @Override
+            public String message() {
+                return "该WebSocket已被踢出！";
+            }
+        });
         room.remove(client);  //从聊天室中移除对象
         if(room.isEmpty()) {
             rooms.remove(user.getRoomName());  //如果聊天室已经没人，删除聊天室
@@ -167,6 +179,14 @@ public interface WSChatCommunicator {
                     return message2;
                 }
             });
+        }
+        final Runnable run = user.kickRun();
+        if(run!=null)run.run();
+        try{Thread.sleep(WAIT_TIMEMILLIS_BEFORE_CLOSE());}catch (Exception e){}
+        try {
+            client.getSession().close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -228,6 +248,9 @@ public interface WSChatCommunicator {
             }
         }
         if("".equals(msg))return null;   //不发空消息
+        if(!targets.isEmpty()){  //如果定向不为空，加入自己
+            targets.add(user.getUserName());
+        }
         return msg;
     }
     /**
@@ -260,7 +283,11 @@ public interface WSChatCommunicator {
                 //try {
                 synchronized (client) {
                     //client.session.getBasicRemote().sendText(msg);
-                    client.getSession().getAsyncRemote().sendText(msg.getJSONMsg());
+                    try{
+                        client.getSession().getAsyncRemote().sendText(msg.getJSONMsg());
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
                 }
                 //} catch (IOException e) {
                 //  e.printStackTrace();
@@ -290,7 +317,11 @@ public interface WSChatCommunicator {
             //try {
             synchronized (client) {
                 //client.session.getBasicRemote().sendText(msg);
-                client.getSession().getAsyncRemote().sendText(msg.getJSONMsg());
+                try {
+                    client.getSession().getAsyncRemote().sendText(msg.getJSONMsg());
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
             }
             //} catch (IOException e) {
             //  e.printStackTrace();
@@ -397,7 +428,11 @@ public interface WSChatCommunicator {
             if(msg.user.getUserName().equals(client.getUser().getUserName())) {
                 synchronized (client) {
                     //client.session.getBasicRemote().sendText(msg);
-                    client.getSession().getAsyncRemote().sendText(msg.getJSONMsg());
+                    try{
+                        client.getSession().getAsyncRemote().sendText(msg.getJSONMsg());
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
                     break;
                 }
             }
@@ -423,10 +458,11 @@ public interface WSChatCommunicator {
                 if(client.getUser().canKick()){
                     final Runnable run = client.getUser().kickRun();
                     client.leave();
-                    if(run!=null)WSChatServer.es.submit(run);
-                    return true;
-                }else {
+                    if(run!=null)run.run();
                     return false;
+                }else {
+                    System.out.println(String.format("旧“serverName:%s,roomName:%s,userName:%s”不允许被踢出！",user.getServerName(),user.getRoomName(),user.getUserName() ));
+                    return true;
                 }
             }
         }
